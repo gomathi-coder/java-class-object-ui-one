@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects class="Student">
+  <object>
+    <name>Kathir</name>
+    <age>6</age>
+    <weight>16</weight>
+    <classNumber>4</classNumber>
+    <section>B</section>
+  </object>
+  <object>
+    <name>Kayal</name>
+    <age>8</age>
+    <weight>26</weight>
+    <classNumber>4</classNumber>
+    <section>C</section>
+  </object>
+</objects>

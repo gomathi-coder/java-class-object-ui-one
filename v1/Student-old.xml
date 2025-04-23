@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java-class>
+  <class>
+    <name>Student</name>
+    <modifiers>public</modifiers>
+    <fields>
+      <field>
+        <modifiers></modifiers>
+        <type>String</type>
+        <name>name</name>
+      </field>
+      <field>
+        <modifiers></modifiers>
+        <type>int</type>
+        <name>age</name>
+      </field>
+      <field>
+        <modifiers></modifiers>
+        <type>float</type>
+        <name>weight</name>
+      </field>
+      <field>
+        <modifiers></modifiers>
+        <type>int</type>
+        <name>classNumber</name>
+      </field>
+      <field>
+        <modifiers></modifiers>
+        <type>String</type>
+        <name>section</name>
+      </field>
+    </fields>
+    <methods>
+      <method>
+        <modifiers>public</modifiers>
+        <return-type>void</return-type>
+        <name>tellAboutYourself</name>
+      </method>
+      <method>
+        <modifiers>public</modifiers>
+        <return-type>void</return-type>
+        <name>tellYourClass</name>
+      </method>
+    </methods>
+  </class>
+</java-class>

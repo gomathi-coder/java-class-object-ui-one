@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects class="Student">
+  <object>
+    <instance-id>as5gf7</instance-id>
+    <name>Kathir</name>
+    <age>6</age>
+    <weight>16</weight>
+    <classNumber>4</classNumber>
+    <section>B</section>
+  </object>
+</objects>

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Class Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+        .pane {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        #left-pane {
+            background-color: #f0f0f0;
+            border-right: 1px solid #ccc;
+        }
+        #right-pane {
+            background-color: #f9f9f9;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .attribute, .method {
+            background-color: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .object-box {
+            background-color: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .object-box:hover {
+            background-color: #f0f0f0;
+        }
+        .field-row {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .field-row input {
+            margin-right: 10px;
+            padding: 5px;
+        }
+        .method-definition {
+            background-color: #f5f5f5;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 5px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+        }
+        #file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="left-pane" class="pane">
+        <h2>Class Specification</h2>
+        <button id="load-xml">Load XML</button>
+        <input type="file" id="file-input" accept=".xml">
+        
+        <div id="class-info">
+            <h3 id="class-name">Class: Student</h3>
+            <div id="modifiers">Modifiers: public</div>
+        </div>
+        
+        <h3>Attributes</h3>
+        <div id="attributes-list">
+            <!-- Attributes will be populated here -->
+        </div>
+        <button id="add-attribute">Add Attribute</button>
+        
+        <h3>Methods</h3>
+        <div id="methods-list">
+            <!-- Methods will be populated here -->
+        </div>
+        <button id="add-method">Add Method</button>
+        
+        <button id="download-spec">Download Class Spec as XML</button>
+    </div>
+    
+    <div id="right-pane" class="pane">
+        <h2>Objects</h2>
+        <button id="add-object">Add Object</button>
+        <div id="objects-container">
+            <!-- Objects will be added here -->
+        </div>
+        <button id="download-objects">Download Objects as XML</button>
+    </div>
+    
+    <!-- Add Attribute Modal -->
+    <div id="attribute-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Add Attribute</h3>
+            <div class="field-row">
+                <input type="text" id="attr-modifiers" placeholder="Modifiers (e.g., private)">
+                <input type="text" id="attr-type" placeholder="Type (e.g., String)" required>
+                <input type="text" id="attr-name" placeholder="Name (e.g., age)" required>
+            </div>
+            <button id="save-attribute">Save</button>
+        </div>
+    </div>
+    
+    <!-- Add Method Modal -->
+    <div id="method-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Add Method</h3>
+            <div class="field-row">
+                <input type="text" id="method-modifiers" placeholder="Modifiers (e.g., public)">
+                <input type="text" id="method-return-type" placeholder="Return type (e.g., void)" required>
+                <input type="text" id="method-name" placeholder="Name (e.g., getName)" required>
+            </div>
+            <div id="parameters-container">
+                <h4>Parameters</h4>
+                <div id="parameters-list"></div>
+                <button id="add-parameter">Add Parameter</button>
+            </div>
+            <h4>Method Definition</h4>
+            <textarea id="method-definition" placeholder="Enter method body"></textarea>
+            <button id="save-method">Save</button>
+        </div>
+    </div>
+    
+    <!-- Add Parameter Modal -->
+    <div id="parameter-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Add Parameter</h3>
+            <div class="field-row">
+                <input type="text" id="param-type" placeholder="Type (e.g., int)" required>
+                <input type="text" id="param-name" placeholder="Name (e.g., count)" required>
+            </div>
+            <button id="save-parameter">Save</button>
+        </div>
+    </div>
+    
+    <!-- Edit Object Modal -->
+    <div id="object-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Edit Object</h3>
+            <div id="object-fields">
+                <!-- Object fields will be populated here -->
+            </div>
+            <button id="save-object">Save</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let classData = {
+            name: "Student",
+            modifiers: "public",
+            fields: [],
+            methods: [],
+            objects: []
+        };
+        
+        // DOM elements
+        const leftPane = document.getElementById('left-pane');
+        const rightPane = document.getElementById('right-pane');
+        const loadXmlBtn = document.getElementById('load-xml');
+        const fileInput = document.getElementById('file-input');
+        const classNameEl = document.getElementById('class-name');
+        const modifiersEl = document.getElementById('modifiers');
+        const attributesList = document.getElementById('attributes-list');
+        const methodsList = document.getElementById('methods-list');
+        const addAttributeBtn = document.getElementById('add-attribute');
+        const addMethodBtn = document.getElementById('add-method');
+        const downloadSpecBtn = document.getElementById('download-spec');
+        const addObjectBtn = document.getElementById('add-object');
+        const objectsContainer = document.getElementById('objects-container');
+        const downloadObjectsBtn = document.getElementById('download-objects');
+        
+        // Modal elements
+        const attributeModal = document.getElementById('attribute-modal');
+        const methodModal = document.getElementById('method-modal');
+        const parameterModal = document.getElementById('parameter-modal');
+        const objectModal = document.getElementById('object-modal');
+        
+        // Close modals when clicking on X
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', function() {
+                this.closest('.modal').style.display = 'none';
+            });
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        });
+        
+        // Initialize with sample data
+        function initSampleData() {
+            classData.fields = [
+                { modifiers: '', type: 'String', name: 'name' },
+                { modifiers: '', type: 'int', name: 'age' },
+                { modifiers: '', type: 'float', name: 'weight' },
+                { modifiers: '', type: 'int', name: 'classNumber' },
+                { modifiers: '', type: 'String', name: 'section' }
+            ];
+            
+            classData.methods = [
+                {
+                    modifiers: 'public',
+                    returnType: 'void',
+                    name: 'tellAboutYourself',
+                    parameters: [],
+                    definition: '{\n    System.out.println("Name: " + name);\n    System.out.println("Age: " + age);\n    System.out.println("Weight: " + weight);\n    System.out.println("Class: " + classNumber);\n    System.out.println("Section: " + section);\n}'
+                },
+                {
+                    modifiers: 'public',
+                    returnType: 'void',
+                    name: 'tellYourClass',
+                    parameters: [],
+                    definition: '{\n    System.out.println("Class: " + classNumber + ", Section: " + section);\n}'
+                },
+                {
+                    modifiers: 'public',
+                    returnType: 'int',
+                    name: 'setYourClass',
+                    parameters: [{ type: 'int', name: 'class' }],
+                    definition: '{\n    this.classNumber = class;\n    return this.classNumber;\n}'
+                }
+            ];
+            
+            //updateClassDisplay();
+        }
+        
+        // Update class display
+        function updateClassDisplay() {
+            classNameEl.textContent = `Class: ${classData.name}`;
+            modifiersEl.textContent = `Modifiers: ${classData.modifiers}`;
+            
+            // Update attributes
+            attributesList.innerHTML = '';
+            classData.fields.forEach(field => {
+                const attributeDiv = document.createElement('div');
+                attributeDiv.className = 'attribute';
+                attributeDiv.innerHTML = `
+                    <div><strong>${field.type} ${field.name}</strong> ${field.modifiers ? `(${field.modifiers})` : ''}</div>
+                `;
+                attributesList.appendChild(attributeDiv);
+            });
+            
+            // Update methods
+            methodsList.innerHTML = '';
+            classData.methods.forEach(method => {
+                const methodDiv = document.createElement('div');
+                methodDiv.className = 'method';
+                
+                let params = method.parameters.map(p => `${p.type} ${p.name}`).join(', ');
+                
+                methodDiv.innerHTML = `
+                    <div><strong>${method.returnType} ${method.name}(${params})</strong> ${method.modifiers ? `(${method.modifiers})` : ''}</div>
+                    <div class="method-definition">${method.definition}</div>
+                `;
+                methodsList.appendChild(methodDiv);
+            });
+        }
+        
+        // Update objects display
+        function updateObjectsDisplay() {
+            objectsContainer.innerHTML = '';
+            classData.objects.forEach((obj, index) => {
+                const objBox = document.createElement('div');
+                objBox.className = 'object-box';
+                objBox.dataset.index = index;
+                
+                let content = `<strong>${classData.name} object</strong><br>`;
+                for (const [key, value] of Object.entries(obj)) {
+                    content += `${key}: ${value}<br>`;
+                }
+                
+                objBox.innerHTML = content;
+                objBox.addEventListener('click', () => editObject(index));
+                objectsContainer.appendChild(objBox);
+            });
+        }
+        
+        // Load XML file
+        loadXmlBtn.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const xmlText = e.target.result;
+                parseXml(xmlText);
+            };
+            reader.readAsText(file);
+        });
+        
+        // Parse XML
+        function parseXml(xmlText) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+            
+            // Clear existing data
+            classData = {
+                name: "",
+                modifiers: "",
+                fields: [],
+                methods: [],
+                objects: []
+            };
+            
+            // Parse class info
+            const classNode = xmlDoc.querySelector('class');
+            classData.name = classNode.querySelector('name').textContent;
+            classData.modifiers = classNode.querySelector('modifiers')?.textContent || '';
+            
+            // Parse fields
+            const fields = classNode.querySelectorAll('field');
+            fields.forEach(field => {
+                classData.fields.push({
+                    modifiers: field.querySelector('modifiers')?.textContent || '',
+                    type: field.querySelector('type').textContent,
+                    name: field.querySelector('name').textContent
+                });
+            });
+            
+            // Parse methods
+            const methods = classNode.querySelectorAll('method');
+            methods.forEach(method => {
+                const methodObj = {
+                    modifiers: method.querySelector('modifiers')?.textContent || '',
+                    returnType: method.querySelector('return-type').textContent,
+                    name: method.querySelector('name').textContent,
+                    parameters: [],
+                    definition: method.querySelector('definition')?.textContent || ''
+                };
+                
+                // Parse parameters
+                const params = method.querySelectorAll('parameter');
+                params.forEach(param => {
+                    methodObj.parameters.push({
+                        type: param.querySelector('type').textContent,
+                        name: param.querySelector('name').textContent
+                    });
+                });
+                
+                classData.methods.push(methodObj);
+            });
+            
+            updateClassDisplay();
+        }
+        
+        // Add attribute
+        addAttributeBtn.addEventListener('click', () => {
+            document.getElementById('attr-modifiers').value = '';
+            document.getElementById('attr-type').value = '';
+            document.getElementById('attr-name').value = '';
+            attributeModal.style.display = 'block';
+        });
+        
+        document.getElementById('save-attribute').addEventListener('click', () => {
+            const modifiers = document.getElementById('attr-modifiers').value;
+            const type = document.getElementById('attr-type').value;
+            const name = document.getElementById('attr-name').value;
+            
+            if (!type || !name) {
+                alert('Type and name are required!');
+                return;
+            }
+            
+            classData.fields.push({
+                modifiers: modifiers,
+                type: type,
+                name: name
+            });
+            
+            attributeModal.style.display = 'none';
+            updateClassDisplay();
+        });
+        
+        // Add method
+        let currentMethodParameters = [];
+        
+        addMethodBtn.addEventListener('click', () => {
+            document.getElementById('method-modifiers').value = '';
+            document.getElementById('method-return-type').value = '';
+            document.getElementById('method-name').value = '';
+            document.getElementById('method-definition').value = '';
+            currentMethodParameters = [];
+            updateParametersList();
+            methodModal.style.display = 'block';
+        });
+        
+        document.getElementById('add-parameter').addEventListener('click', () => {
+            document.getElementById('param-type').value = '';
+            document.getElementById('param-name').value = '';
+            parameterModal.style.display = 'block';
+        });
+        
+        document.getElementById('save-parameter').addEventListener('click', () => {
+            const type = document.getElementById('param-type').value;
+            const name = document.getElementById('param-name').value;
+            
+            if (!type || !name) {
+                alert('Type and name are required!');
+                return;
+            }
+            
+            currentMethodParameters.push({ type, name });
+            parameterModal.style.display = 'none';
+            updateParametersList();
+        });
+        
+        function updateParametersList() {
+            const paramsList = document.getElementById('parameters-list');
+            paramsList.innerHTML = '';
+            
+            if (currentMethodParameters.length === 0) {
+                paramsList.innerHTML = '<div>No parameters</div>';
+                return;
+            }
+            
+            currentMethodParameters.forEach(param => {
+                const paramDiv = document.createElement('div');
+                paramDiv.textContent = `${param.type} ${param.name}`;
+                paramsList.appendChild(paramDiv);
+            });
+        }
+        
+        document.getElementById('save-method').addEventListener('click', () => {
+            const modifiers = document.getElementById('method-modifiers').value;
+            const returnType = document.getElementById('method-return-type').value;
+            const name = document.getElementById('method-name').value;
+            const definition = document.getElementById('method-definition').value;
+            
+            if (!returnType || !name || !definition) {
+                alert('Return type, name and definition are required!');
+                return;
+            }
+            
+            classData.methods.push({
+                modifiers: modifiers,
+                returnType: returnType,
+                name: name,
+                parameters: [...currentMethodParameters],
+                definition: definition
+            });
+            
+            methodModal.style.display = 'none';
+            updateClassDisplay();
+        });
+        
+        // Add object
+        addObjectBtn.addEventListener('click', () => {
+            const newObj = {};
+            classData.fields.forEach(field => {
+                newObj[field.name] = '';
+            });
+            classData.objects.push(newObj);
+            editObject(classData.objects.length - 1);
+        });
+        
+        // Edit object
+        function editObject(index) {
+            const obj = classData.objects[index];
+            const objectFields = document.getElementById('object-fields');
+            objectFields.innerHTML = '';
+            
+            for (const [key, value] of Object.entries(obj)) {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'field-row';
+                
+                const fieldType = classData.fields.find(f => f.name === key)?.type || 'String';
+                
+                fieldDiv.innerHTML = `
+                    <label>${key} (${fieldType}):</label>
+                    <input type="${getInputTypeForFieldType(fieldType)}" 
+                           value="${value}" 
+                           data-field="${key}">
+                `;
+                objectFields.appendChild(fieldDiv);
+            }
+            
+            // Update save button to know which object we're editing
+            const saveBtn = document.getElementById('save-object');
+            saveBtn.onclick = function() {
+                saveObject(index);
+            };
+            
+            objectModal.style.display = 'block';
+        }
+        
+        function getInputTypeForFieldType(fieldType) {
+            switch(fieldType.toLowerCase()) {
+                case 'int':
+                case 'integer':
+                case 'long':
+                case 'short':
+                case 'byte':
+                    return 'number';
+                case 'float':
+                case 'double':
+                    return 'number';
+                case 'boolean':
+                    return 'checkbox';
+                default:
+                    return 'text';
+            }
+        }
+        
+        function saveObject(index) {
+            const inputs = document.querySelectorAll('#object-fields input');
+            const obj = classData.objects[index];
+            
+            inputs.forEach(input => {
+                const fieldName = input.dataset.field;
+                const fieldType = classData.fields.find(f => f.name === fieldName)?.type || 'String';
+                
+                if (fieldType.toLowerCase() === 'boolean') {
+                    obj[fieldName] = input.checked;
+                } else if (fieldType.toLowerCase() === 'int' || 
+                          fieldType.toLowerCase() === 'integer' || 
+                          fieldType.toLowerCase() === 'long' || 
+                          fieldType.toLowerCase() === 'short' || 
+                          fieldType.toLowerCase() === 'byte') {
+                    obj[fieldName] = parseInt(input.value) || 0;
+                } else if (fieldType.toLowerCase() === 'float' || 
+                          fieldType.toLowerCase() === 'double') {
+                    obj[fieldName] = parseFloat(input.value) || 0.0;
+                } else {
+                    obj[fieldName] = input.value;
+                }
+            });
+            
+            objectModal.style.display = 'none';
+            updateObjectsDisplay();
+        }
+        
+        // Download class spec as XML
+        downloadSpecBtn.addEventListener('click', () => {
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<java-class>
+  <class>
+    <name>${classData.name}</name>
+    <modifiers>${classData.modifiers}</modifiers>
+    <fields>`;
+            
+            classData.fields.forEach(field => {
+                xml += `
+      <field>
+        <modifiers>${field.modifiers}</modifiers>
+        <type>${field.type}</type>
+        <name>${field.name}</name>
+      </field>`;
+            });
+            
+            xml += `
+    </fields>
+    <methods>`;
+            
+            classData.methods.forEach(method => {
+                xml += `
+      <method>
+        <modifiers>${method.modifiers}</modifiers>
+        <return-type>${method.returnType}</return-type>
+        <name>${method.name}</name>`;
+                
+                if (method.parameters.length > 0) {
+                    xml += `
+        <parameters>`;
+                    method.parameters.forEach(param => {
+                        xml += `
+          <parameter>
+            <type>${param.type}</type>
+            <name>${param.name}</name>
+          </parameter>`;
+                    });
+                    xml += `
+        </parameters>`;
+                }
+                
+                xml += `
+        <definition><![CDATA[${method.definition}]]></definition>
+      </method>`;
+            });
+            
+            xml += `
+    </methods>
+  </class>
+</java-class>`;
+            
+            downloadFile(`${classData.name}-spec.xml`, xml);
+        });
+        
+        // Download objects as XML
+        downloadObjectsBtn.addEventListener('click', () => {
+            if (classData.objects.length === 0) {
+                alert('No objects to download!');
+                return;
+            }
+            
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<objects class="${classData.name}">`;
+            
+            classData.objects.forEach(obj => {
+                xml += `
+  <object>`;
+                
+                for (const [key, value] of Object.entries(obj)) {
+                    xml += `
+    <${key}>${value}</${key}>`;
+                }
+                
+                xml += `
+  </object>`;
+            });
+            
+            xml += `
+</objects>`;
+            
+            downloadFile(`${classData.name}-objects.xml`, xml);
+        });
+        
+        // Helper function to download files
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Initialize with sample data
+        initSampleData();
+    </script>
+</body>
+</html>

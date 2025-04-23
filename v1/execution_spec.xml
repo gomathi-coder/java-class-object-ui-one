@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<execution-set>
+ <execution>
+  <class>Student</class>
+  <instance-id>as5gf7</instance-id>
+  <method>
+    <name>setYourClass</name>
+    <parameters>
+          <parameter>            
+            <value>6</value>            
+          </parameter>
+    </parameters> 
+    </method> 
+ </execution>
+
+ <execution>
+  <class>Student</class>
+  <instance-id>as5gf7</instance-id>
+  <method>
+    <name>tellYourClass</name>
+  </method> 
+ </execution>
+
+</execution-set>
