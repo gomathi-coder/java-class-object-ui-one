@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class and Object Explorer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 200vh;
+        }
+        .pane {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        #classPane {
+            background-color: #f0f0f0;
+            border-right: 1px solid #ccc;
+        }
+        #objectPane {
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+        }
+        .object-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .object-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 200px;
+        }
+        .object-box h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .property {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .property-name {
+            font-weight: bold;
+            width: 100px;
+        }
+        .property-value {
+            flex: 1;
+        }
+        .property-value input {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .method {
+            color: #0066cc;
+            text-decoration: underline;
+            cursor: pointer;
+            margin: 8px 0;
+            display: block;
+        }
+        .method:hover {
+            color: #004499;
+        }
+        #console {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            font-family: monospace;
+            height: 250px;
+            overflow-y: auto;
+            border-radius: 5px;
+            margin-top: auto;
+        }
+        #console p {
+            margin: 5px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .class-definition {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .class-definition h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .file-upload {
+            margin-bottom: 20px;
+        }
+        .create-object-form {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .save-btn {
+            background-color: #2196F3;
+            margin-top: 10px;
+        }
+        .save-btn:hover {
+            background-color: #0b7dda;
+        }
+		
+		/* Add modal dialog styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .param-input {
+            margin-bottom: 15px;
+        }
+        .param-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .param-input input, .param-input select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .execute-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .execute-btn:hover {
+            background-color: #45a049;
+        }
+		 /* Add styles for method definitions */
+        .method-definition {
+            background-color: #f8f8f8;
+            border-left: 3px solid #4CAF50;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .method-signature {
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 5px;
+        }
+        .toggle-definition {
+            color: #666;
+            font-size: 0.9em;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .toggle-definition:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="classPane" class="pane">
+        <h1>Class Pane</h1>
+        
+        <div class="file-upload">
+            <h3>Load Class from XML</h3>
+            <input type="file" id="xmlFileInput" accept=".xml">
+            <button id="loadXmlBtn">Load Class</button>
+        </div>
+        
+        <div id="classDisplay" class="class-definition">
+            <p>No class loaded. Upload an XML file to define a class.</p>
+        </div>
+		<div id="console">
+            <p>Console output will appear here...</p>
+        </div>
+    </div>
+    
+    <div id="objectPane" class="pane">
+        <h1>Object Pane</h1>
+        
+        <div id="objectCreation" class="create-object-form" style="display: none;">
+            <h3>Create New Object</h3>
+            <div id="constructorInputs"></div>
+            <button id="createObjectBtn">Create Object</button>
+        </div>
+        
+        <div id="objectsContainer" class="object-container">
+            <!-- Objects will be displayed here -->
+        </div>
+                
+    </div>
+
+    <script>
+        // Global variables
+        let currentClass = null;
+        let objects = [];
+        
+        // DOM elements
+        const xmlFileInput = document.getElementById('xmlFileInput');
+        const loadXmlBtn = document.getElementById('loadXmlBtn');
+        const classDisplay = document.getElementById('classDisplay');
+        const objectCreation = document.getElementById('objectCreation');
+        const constructorInputs = document.getElementById('constructorInputs');
+        const createObjectBtn = document.getElementById('createObjectBtn');
+        const objectsContainer = document.getElementById('objectsContainer');
+        const consoleOutput = document.getElementById('console');
+        
+        // Event listeners
+        loadXmlBtn.addEventListener('click', loadClassFromXML);
+        createObjectBtn.addEventListener('click', createObject);
+        
+        // Function to log to our console display
+        function logToConsole(message) {
+            const p = document.createElement('p');
+            p.textContent = message;
+            consoleOutput.appendChild(p);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        // Function to load class from XML
+        function loadClassFromXML() {
+            const file = xmlFileInput.files[0];
+            if (!file) {
+                logToConsole("Please select an XML file first.");
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const xmlString = e.target.result;
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+                    
+                    // Parse the class from XML
+                    currentClass = parseClassFromXML(xmlDoc);
+                    
+                    // Display the class definition
+                    displayClassDefinition();
+                    
+                    // Show object creation form
+                    objectCreation.style.display = 'block';
+                    setupConstructorInputs();
+                    
+                    logToConsole(`Class "${currentClass.name}" loaded successfully.`);
+                } catch (error) {
+                    logToConsole(`Error loading class: ${error.message}`);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // Function to parse class from XML
+        function parseClassFromXML(xmlDoc) {
+            const classNode = xmlDoc.querySelector('class');
+            if (!classNode) throw new Error("No class definition found in XML");
+            
+            const className = classNode.getAttribute('name');
+            const properties = [];
+            const methods = [];
+            
+            // Parse properties
+            const propertyNodes = classNode.querySelectorAll('property');
+            propertyNodes.forEach(propNode => {
+                properties.push({
+                    name: propNode.getAttribute('name'),
+                    type: propNode.getAttribute('type')
+                });
+            });
+            
+            // Parse methods
+            const methodNodes = classNode.querySelectorAll('method');
+            methodNodes.forEach(methodNode => {
+                const methodName = methodNode.getAttribute('name');
+                const parameters = [];
+                
+                // Parse parameters
+                const paramNodes = methodNode.querySelectorAll('parameter');
+                paramNodes.forEach(paramNode => {
+                    parameters.push({
+                        name: paramNode.getAttribute('name'),
+                        type: paramNode.getAttribute('type')
+                    });
+                });
+                
+                // Get method body
+                const bodyNode = methodNode.querySelector('body');
+                const body = bodyNode ? bodyNode.textContent.trim() : '';
+                
+                methods.push({
+                    name: methodName,
+                    parameters,
+                    body,
+                    returns: methodNode.getAttribute('returns')
+                });
+            });
+            
+            // Create the class constructor function
+            const constructor = function() {
+                const constructorMethod = methods.find(m => m.name === 'constructor');
+                if (constructorMethod) {
+                    const paramNames = constructorMethod.parameters.map(p => p.name);
+                    const constructorFunc = new Function(...paramNames, constructorMethod.body);
+                    constructorFunc.apply(this, arguments);
+                }
+                
+                // Store the object ID for reference
+                this.__objectId = objects.length;
+            };
+            
+            // Add methods to prototype
+            methods.filter(m => m.name !== 'constructor').forEach(method => {
+                const paramNames = method.parameters.map(p => p.name);
+                constructor.prototype[method.name] = new Function(...paramNames, method.body);
+            });
+            
+            return {
+                name: className,
+                constructor,
+                properties,
+                methods: methods.filter(m => m.name !== 'constructor')
+            };
+        }
+        
+        // Function to display class definition
+        function displayClassDefinition() {
+            if (!currentClass) return;
+            
+            let html = `<h2>${currentClass.name}</h2>`;
+            
+            // Display properties
+            html += '<h3>Properties:</h3><ul>';
+            currentClass.properties.forEach(prop => {
+                html += `<li>${prop.name}: ${prop.type}</li>`;
+            });
+            html += '</ul>';
+            
+            // Display methods
+            html += '<h3>Methods:</h3><ul>';
+            currentClass.methods.forEach(method => {
+                const params = method.parameters.map(p => `${p.name}: ${p.type}`).join(', ');
+                html += `<li>${method.name}(${params}) → ${method.returns || 'void'}</li>`;
+            });
+            html += '</ul>';
+            
+            classDisplay.innerHTML = html;
+        }
+        
+        // Function to setup constructor inputs
+        function setupConstructorInputs() {
+            if (!currentClass) return;
+            
+            const constructorMethod = currentClass.methods.concat(
+                { name: 'constructor', parameters: currentClass.properties }
+            ).find(m => m.name === 'constructor') || { parameters: [] };
+            
+            let html = '';
+            constructorMethod.parameters.forEach(param => {
+                html += `
+                    <div class="form-group">
+                        <label for="param_${param.name}">${param.name} (${param.type}):</label>
+                        <input type="${param.type === 'number' ? 'number' : 'text'}" 
+                               id="param_${param.name}" 
+                               ${param.type === 'number' ? 'step="any"' : ''}
+                               required>
+                    </div>
+                `;
+            });
+            
+            constructorInputs.innerHTML = html;
+        }
+        
+        // Function to create object
+        function createObject() {
+            if (!currentClass) return;
+            
+            try {
+                // Get constructor parameters
+                const constructorMethod = currentClass.methods.concat(
+                    { name: 'constructor', parameters: currentClass.properties }
+                ).find(m => m.name === 'constructor') || { parameters: [] };
+                
+                const args = constructorMethod.parameters.map(param => {
+                    const input = document.getElementById(`param_${param.name}`);
+                    let value = input.value;
+                    
+                    // Convert value based on type
+                    switch (param.type) {
+                        case 'number':
+                            value = parseFloat(value);
+                            if (isNaN(value)) throw new Error(`Invalid number for ${param.name}`);
+                            break;
+                        case 'boolean':
+                            value = value.toLowerCase() === 'true';
+                            break;
+                        // Other types can be added as needed
+                    }
+                    
+                    return value;
+                });
+                
+                // Create the object
+                const obj = new currentClass.constructor(...args);
+                objects.push(obj);
+                
+                // Display the object
+                displayObject(obj);
+                
+                logToConsole(`Created new ${currentClass.name} object with ID ${obj.__objectId}.`);
+                
+                // Clear inputs
+                constructorMethod.parameters.forEach(param => {
+                    document.getElementById(`param_${param.name}`).value = '';
+                });
+                
+            } catch (error) {
+                logToConsole(`Error creating object: ${error.message}`);
+            }
+        }
+        
+        // Function to display an object
+        function displayObject(obj) {
+            const objBox = document.createElement('div');
+            objBox.className = 'object-box';
+            objBox.id = `object-${obj.__objectId}`;
+            
+            let html = `<h3>${currentClass.name} #${obj.__objectId + 1}</h3>`;
+            
+            // Display editable properties
+            html += '<div class="properties">';
+            currentClass.properties.forEach(prop => {
+                html += `
+                    <div class="property">
+                        <div class="property-name">${prop.name}:</div>
+                        <div class="property-value">
+                            <input type="${prop.type === 'number' ? 'number' : 'text'}" 
+                                   value="${obj[prop.name]}" 
+                                   ${prop.type === 'number' ? 'step="any"' : ''}
+                                   onchange="updateProperty(${obj.__objectId}, '${prop.name}', this.value)">
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            // Display methods
+            html += '<div class="methods"><h4>Methods:</h4>';
+            currentClass.methods.forEach(method => {
+                if (method.name !== 'constructor') {
+                    html += `<a class="method" onclick="executeMethod(${obj.__objectId}, '${method.name}')">${method.name}()</a>`;
+                }
+            });
+            html += '</div>';
+            
+            // Add save button
+            html += `<button class="save-btn" onclick="saveObject(${obj.__objectId})">Save Changes</button>`;
+            
+            objBox.innerHTML = html;
+            objectsContainer.appendChild(objBox);
+        }
+        
+        // Function to update object property (needs to be global)
+        window.updateProperty = function(objId, propName, value) {
+            try {
+                const obj = objects[objId];
+                if (!obj) throw new Error(`Object not found`);
+                
+                // Convert value based on property type
+                const propDef = currentClass.properties.find(p => p.name === propName);
+                if (!propDef) throw new Error(`Property ${propName} not found`);
+                
+                switch (propDef.type) {
+                    case 'number':
+                        value = parseFloat(value);
+                        if (isNaN(value)) throw new Error(`Invalid number for ${propName}`);
+                        break;
+                    case 'boolean':
+                        value = value.toLowerCase() === 'true';
+                        break;
+                }
+                
+                obj[propName] = value;
+                logToConsole(`Object #${objId + 1} property "${propName}" updated to: ${value}`);
+                
+            } catch (error) {
+                logToConsole(`Error updating property: ${error.message}`);
+            }
+        };
+        
+        // Function to save object changes (needs to be global)
+        window.saveObject = function(objId) {
+            const obj = objects[objId];
+            if (!obj) {
+                logToConsole(`Error: Object not found`);
+                return;
+            }
+            
+            logToConsole(`Object #${objId + 1} changes saved.`);
+            // In a real application, you might send the object to a server here
+        };
+        
+        // Function to execute object method (needs to be global)
+        window.executeMethod = function(objId, methodName) {
+            try {
+                const obj = objects[objId];
+                if (!obj || !obj[methodName]) {
+                    throw new Error(`Method ${methodName} not found`);
+                }
+                
+                // For methods with parameters, we could extend this to prompt for inputs
+                const result = obj[methodName]();
+                
+                if (result !== undefined) {
+                    logToConsole(`Object #${objId + 1} ${methodName}() → ${result}`);
+                } else {
+                    logToConsole(`Object #${objId + 1} ${methodName}() executed`);
+                }
+                
+                // Refresh the object display to show any property changes
+                refreshObjectDisplay(objId);
+                
+            } catch (error) {
+                logToConsole(`Error executing method: ${error.message}`);
+            }
+        };
+        
+        // Function to refresh object display
+        function refreshObjectDisplay(objId) {
+            const obj = objects[objId];
+            if (!obj) return;
+            
+            const box = document.getElementById(`object-${objId}`);
+            if (!box) return;
+            
+            // Update all property values
+            currentClass.properties.forEach(prop => {
+                const input = box.querySelector(`input[onchange*="${prop.name}"]`);
+                if (input) {
+                    input.value = obj[prop.name];
+                }
+            });
+        }
+		
+		// Add modal dialog elements
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3 id="modalTitle">Method Parameters</h3>
+                <div id="paramInputs"></div>
+                <button id="executeMethodBtn" class="execute-btn">Execute</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        const modalTitle = document.getElementById('modalTitle');
+        const paramInputs = document.getElementById('paramInputs');
+        const executeMethodBtn = document.getElementById('executeMethodBtn');
+        const closeBtn = document.querySelector('.close');
+        
+        // Variables to track current method execution context
+        let currentMethodObjId = null;
+        let currentMethodName = null;
+        
+        // Event listeners
+        closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        executeMethodBtn.addEventListener('click', executeMethodWithParams);
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // (Previous functions remain the same until displayObject)
+        
+        // Modified displayObject function to handle parameterized methods
+        function displayObject(obj) {
+            const objBox = document.createElement('div');
+            objBox.className = 'object-box';
+            objBox.id = `object-${obj.__objectId}`;
+            
+            let html = `<h3>${currentClass.name} #${obj.__objectId + 1}</h3>`;
+            
+            // Display editable properties
+            html += '<div class="properties">';
+            currentClass.properties.forEach(prop => {
+                html += `
+                    <div class="property">
+                        <div class="property-name">${prop.name}:</div>
+                        <div class="property-value">
+                            <input type="${prop.type === 'number' ? 'number' : 'text'}" 
+                                   value="${obj[prop.name]}" 
+                                   ${prop.type === 'number' ? 'step="any"' : ''}
+                                   onchange="updateProperty(${obj.__objectId}, '${prop.name}', this.value)">
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            // Display methods with parameter handling
+            html += '<div class="methods"><h4>Methods:</h4>';
+            currentClass.methods.forEach(method => {
+                if (method.name !== 'constructor') {
+                    const params = method.parameters.map(p => `${p.name}: ${p.type}`).join(', ');
+                    html += `
+                        <a class="method" onclick="showMethodParamsDialog(${obj.__objectId}, '${method.name}')">
+                            ${method.name}(${params})
+                        </a>
+                    `;
+                }
+            });
+            html += '</div>';
+            
+            // Add save button
+            html += `<button class="save-btn" onclick="saveObject(${obj.__objectId})">Save Changes</button>`;
+            
+            objBox.innerHTML = html;
+            objectsContainer.appendChild(objBox);
+        }
+        
+        // Function to show parameter input dialog
+        window.showMethodParamsDialog = function(objId, methodName) {
+            currentMethodObjId = objId;
+            currentMethodName = methodName;
+            
+            const obj = objects[objId];
+            if (!obj || !obj[methodName]) {
+                logToConsole(`Method ${methodName} not found`);
+                return;
+            }
+            
+            // Find the method definition
+            const methodDef = currentClass.methods.find(m => m.name === methodName);
+            if (!methodDef) {
+                logToConsole(`Method definition not found for ${methodName}`);
+                return;
+            }
+            
+            // Set modal title
+            modalTitle.textContent = `${methodName}() Parameters`;
+            
+            // Create parameter inputs
+            paramInputs.innerHTML = '';
+            methodDef.parameters.forEach((param, index) => {
+                const paramDiv = document.createElement('div');
+                paramDiv.className = 'param-input';
+                paramDiv.innerHTML = `
+                    <label for="param-${index}">${param.name} (${param.type}):</label>
+                    <input type="${param.type === 'number' ? 'number' : 'text'}" 
+                           id="param-${index}" 
+                           ${param.type === 'number' ? 'step="any"' : ''}
+                           required>
+                `;
+                paramInputs.appendChild(paramDiv);
+            });
+            
+            // Show the modal
+            modal.style.display = 'block';
+        };
+        
+        // Function to execute method with collected parameters
+        function executeMethodWithParams() {
+            try {
+                const obj = objects[currentMethodObjId];
+                if (!obj || !obj[currentMethodName]) {
+                    throw new Error(`Method ${currentMethodName} not found`);
+                }
+                
+                // Find the method definition
+                const methodDef = currentClass.methods.find(m => m.name === currentMethodName);
+                if (!methodDef) {
+                    throw new Error(`Method definition not found for ${currentMethodName}`);
+                }
+                
+                // Collect parameter values
+                const args = methodDef.parameters.map((param, index) => {
+                    const input = document.getElementById(`param-${index}`);
+                    let value = input.value;
+                    
+                    // Convert value based on type
+                    switch (param.type) {
+                        case 'number':
+                            value = parseFloat(value);
+                            if (isNaN(value)) throw new Error(`Invalid number for ${param.name}`);
+                            break;
+                        case 'boolean':
+                            value = value.toLowerCase() === 'true';
+                            break;
+                        // Add other type conversions as needed
+                    }
+                    
+                    return value;
+                });
+                
+                // Execute the method
+                const result = obj[currentMethodName](...args);
+                
+                if (result !== undefined) {
+                    logToConsole(`Object #${currentMethodObjId + 1} ${currentMethodName}(${args.join(', ')}) → ${result}`);
+                } else {
+                    logToConsole(`Object #${currentMethodObjId + 1} ${currentMethodName}(${args.join(', ')}) executed`);
+                }
+                
+                // Close the modal
+                modal.style.display = 'none';
+                
+                // Refresh the object display to show any property changes
+                refreshObjectDisplay(currentMethodObjId);
+                
+            } catch (error) {
+                logToConsole(`Error executing method: ${error.message}`);
+            }
+        }
+		 // Enhanced displayClassDefinition to show method implementations
+        function displayClassDefinition() {
+            if (!currentClass) return;
+            
+            let html = `<h2>${currentClass.name}</h2>`;
+            
+            // Display properties
+            html += '<h3>Properties:</h3><ul>';
+            currentClass.properties.forEach(prop => {
+                html += `<li>${prop.name}: ${prop.type}</li>`;
+            });
+            html += '</ul>';
+            
+            // Display methods with implementations
+            html += '<h3>Methods:</h3><div class="methods-list">';
+            currentClass.methods.forEach(method => {
+                const params = method.parameters.map(p => `${p.name}: ${p.type}`).join(', ');
+                const returnType = method.returns ? ` → ${method.returns}` : '';
+                
+                html += `
+                    <div class="method-item">
+                        <div class="method-signature">
+                            ${method.name}(${params})${returnType}
+                            <span class="toggle-definition" onclick="toggleMethodDefinition('${method.name}')">[show implementation]</span>
+                        </div>
+                        <div id="def-${method.name}" class="method-definition" style="display: none;">
+                            ${escapeHtml(method.body)}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            classDisplay.innerHTML = html;
+        }
+        
+        // Helper function to escape HTML for displaying code
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        // Function to toggle method definition visibility
+        window.toggleMethodDefinition = function(methodName) {
+            const def = document.getElementById(`def-${methodName}`);
+            const toggle = def.previousElementSibling.querySelector('.toggle-definition');
+            
+            if (def.style.display === 'none') {
+                def.style.display = 'block';
+                toggle.textContent = '[hide implementation]';
+            } else {
+                def.style.display = 'none';
+                toggle.textContent = '[show implementation]';
+            }
+        };
+    </script>
+</body>
+</html>

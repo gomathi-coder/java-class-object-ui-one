@@ -1,0 +1,49 @@
+<class name="Student">
+  <properties>
+    <property name="name" type="string" />
+    <property name="age" type="number" />
+  </properties>
+  
+  <methods>
+    <method name="constructor">
+      <parameters>
+        <parameter name="name" type="string" />
+        <parameter name="age" type="number" />
+      </parameters>
+      <body>
+        this.name = name;
+        this.age = age;
+      </body>
+    </method>
+    
+    <method name="getInfo" returns="string">
+      <body>
+        return `Name: ${this.name}, Age: ${this.age}`;
+      </body>
+    </method>
+    
+    <method name="isAdult" returns="boolean">
+      <body>
+        return this.age >= 18;
+      </body>
+    </method>
+    
+    <method name="celebrateBirthday" returns="string">
+      <body>
+        this.age++;
+        return `Happy Birthday ${this.name}! You are now ${this.age} years old.`;
+      </body>
+    </method>
+    
+    <method name="changeName" returns="string">
+      <parameters>
+        <parameter name="newName" type="string" />
+      </parameters>
+      <body>
+        const oldName = this.name;
+        this.name = newName;
+        return `Name changed from ${oldName} to ${this.name}`;
+      </body>
+    </method>
+  </methods>
+</class>
